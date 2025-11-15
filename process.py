@@ -32,8 +32,11 @@ def call_webhook_security_assessment(product=None, company=None, url_param=None)
         "product_name": product,
         "website": url_param,
     }
-    final_payload = {"product": payload}
+    final_payload = payload
     response = send_post_request(url, final_payload)
+
+    if response.get("response_json") == None:
+        return call_webhook_security_assessment(product, company, url_param)
 
     #TODO: Process this response to get the calculable value for scoring
     return response
@@ -70,7 +73,7 @@ def call_webhook_virustotal(product=None, company=None, sha1=None):
         "company_name": company,
         "hash": sha1
     }
-    final_payload = {"product": payload}
+    final_payload = payload
     response = send_post_request(url, final_payload)
 
     #TODO: Process this response to get the calculable value for scoring
@@ -88,7 +91,7 @@ def call_webhook_certs_scan(product=None, company=None, url_param=None):
         "product_name": product,
         "website": url_param,
     }
-    final_payload = {"product": payload}
+    final_payload =  payload
     response = send_post_request(url, final_payload)
 
     #TODO: Process this response to get the calculable value for scoring
