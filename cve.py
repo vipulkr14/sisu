@@ -57,13 +57,17 @@ def get_cve_records_by_keyword(product_name,use_exact_match):
         description = item["cve"]["descriptions"][0]["value"]
         base_score = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseScore"]
         base_severity = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseSeverity"]
-        vulnStatus = item["cve"]["id"]["vulnStatus"]
+        exploitabilityScore = item["cve"]["metrics"]["cvssMetricV31"][0]["exploitabilityScore"]
+        impactScore = item["cve"]["metrics"]["cvssMetricV31"][0]["impactScore"]
+        vulnStatus = item["cve"]["vulnStatus"]
         results.append({
             "cve_id": cve_id,
             "description": description,
             "base_score": base_score,
             "base_severity": base_severity,
-            "vulnStatus": vulnStatus
+            "vulnStatus": vulnStatus,
+            "exploitabilityScore": exploitabilityScore,
+            "impactScore": impactScore
         })
         #print(f"{cve_id}: {description} CVSS score: {base_score} CVSS Severity {base_severity}\n")
     # --- Build summary counts ---
