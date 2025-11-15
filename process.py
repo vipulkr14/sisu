@@ -1,6 +1,7 @@
 import requests
 import os
 import graph
+import cve
 
 def call_webhook_assess_product(product=None, company=None, sha1=None):
     """
@@ -13,12 +14,13 @@ def call_webhook_assess_product(product=None, company=None, sha1=None):
         "company_name": company,
         "sha1": sha1,
     }
-
-    response = send_post_request(url, payload)
+    final_payload = {"product": payload}
+    response = send_post_request(url, final_payload)
 
     #TODO: Process this response to get the calculable value for scoring
 
-    return response
+    # Return only the JSON payload, or None if request failed
+    return response.get("response_json") if response.get("success") else None
 
 def call_webhook_security_assessment(product=None, company=None, url_param=None):
     """
@@ -30,12 +32,13 @@ def call_webhook_security_assessment(product=None, company=None, url_param=None)
         "product_name": product,
         "website": url_param,
     }
-
-    response = send_post_request(url, payload)
+    final_payload = {"product": payload}
+    response = send_post_request(url, final_payload)
 
     #TODO: Process this response to get the calculable value for scoring
 
-    return response
+    # Return only the JSON payload, or None if request failed
+    return response.get("response_json") if response.get("success") else None
 
 def call_webhook_license_scan(product=None, company=None, url_param=None):
     """
@@ -53,7 +56,44 @@ def call_webhook_license_scan(product=None, company=None, url_param=None):
 
     #TODO: Process this response to get the calculable value for scoring
 
-    return response
+    # Return only the JSON payload, or None if request failed
+    return response.get("response_json") if response.get("success") else None
+
+def call_webhook_virustotal(product=None, company=None, url_param=None):
+    """
+    Sends a POST request with JSON content containing
+    three parameters. Supports missing/None values.
+    """
+    url = "https://plantbase.app.n8n.cloud/webhook/virustotal"
+    payload = {
+        "product_name": product,
+        "website": url_param,
+    }
+    final_payload = {"product": payload}
+    response = send_post_request(url, final_payload)
+
+    #TODO: Process this response to get the calculable value for scoring
+
+    # Return only the JSON payload, or None if request failed
+    return response.get("response_json") if response.get("success") else None
+
+def call_webhook_certs_scan(product=None, company=None, url_param=None):
+    """
+    Sends a POST request with JSON content containing
+    three parameters. Supports missing/None values.
+    """
+    url = "https://plantbase.app.n8n.cloud/webhook/certs-scan"
+    payload = {
+        "product_name": product,
+        "website": url_param,
+    }
+    final_payload = {"product": payload}
+    response = send_post_request(url, final_payload)
+
+    #TODO: Process this response to get the calculable value for scoring
+
+    # Return only the JSON payload, or None if request failed
+    return response.get("response_json") if response.get("success") else None
 
 def send_post_request(url, payload):
     """
@@ -81,6 +121,9 @@ def send_post_request(url, payload):
             "success": False,
             "error": str(e)
         }
+
+def get_cve_data_summary(product=None, company=None, sha1=None):
+    result_json = cve.get_cve_records_by_keyword(product_name=product,use_exact_match=False)
 
 # --------------------------
 # Placeholder Graph Generator
@@ -114,6 +157,7 @@ def prepare_final_result(product=None, company=None, url_param=None):
     return final_result
 
 
+# for testing only
 def main():
     # product='1Password'
     # company='1Password'
@@ -123,7 +167,8 @@ def main():
     product="PeaZip"
     company="Giorgio Tani"
     url="https://github.com/peazip/PeaZip"
-    response=call_webhook_license_scan(product=product,company=company,url_param=url)
+    # response=call_webhook_license_scan(product=product,company=company,url_param=url)
+    response=call_webhook_security_assessment(product=product,company=company,url_param=url)
     print(response)
 
 if __name__ == "__main__":
