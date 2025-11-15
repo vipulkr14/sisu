@@ -15,10 +15,10 @@ def call_webhook_assess_product(product=None, company=None, sha1=None):
         "sha1": sha1,
     }
     final_payload = {"product": payload}
-    response = send_post_request(url, final_payload)
+    response = send_post_request(url, payload)
 
     #TODO: Process this response to get the calculable value for scoring
-
+    print(response)
     # Return only the JSON payload, or None if request failed
     return response.get("response_json") if response.get("success") else None
 
@@ -159,7 +159,7 @@ def prepare_final_result(product=None, company=None, url_param=None):
     return final_result
 
 
-# for testing only
+# # for testing only
 # def main():
 #     # product='1Password'
 #     # company='1Password'
