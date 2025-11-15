@@ -1,5 +1,6 @@
 #ignore folder
 venv/
 output/
+ai_prompt/
 
 massive-boulder-478310-q0-ceb05684a511.json
