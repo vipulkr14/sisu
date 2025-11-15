@@ -2,5 +2,5 @@
 venv/
 output/
 ai_prompt/
-
+__pycache__/
 massive-boulder-478310-q0-ceb05684a511.json
