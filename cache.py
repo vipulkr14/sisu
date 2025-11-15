@@ -11,24 +11,6 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "massive-boulder-478310-q0-ceb056
 collection_name="result-cache"
 document="4q4FdTUqbCtOlP7R9HNx"
 database_name="sisu-store"
-db = firestore.Client(project="massive-boulder-478310-q0", database=database_name)
-
-
-def add_data(product, vendor, url, summary, trustability, graph, expiry):
-    """
-    Add new record to cache
-    """
-    doc_ref = db.collection(collection_name).document(document)
-    doc_ref.set({"Product": product, "Company": vendor, "URL": url, "Summary": summary,
-                 "trustability": trustability, "Graph": graph, "Expiry": expiry})
-
-def read_data():
-    users_ref = db.collection(collection_name)
-    docs = users_ref.stream()
-    print("Hi")
-    for doc in docs:
-        print(f"{doc.id} ***REMOVED*** {doc.to_dict()}")
-
 
 class ProductManager:
     
@@ -356,12 +338,31 @@ class ProductManager:
             return []
 
 
-def main():
-    product_manager = ProductManager()
-    all_products = product_manager.get_all_products()
-    for product in all_products:
-        print(f"📦 {product['Product']} by {product['Company']} "
-              f"(Trust: {product['Trustability']})")
 
-if __name__ == "__main__":
-    main()
+# db = firestore.Client(project="massive-boulder-478310-q0", database=database_name)
+# # For test only
+
+# def add_data(product, vendor, url, summary, trustability, graph, expiry):
+#     """
+#     Add new record to cache
+#     """
+#     doc_ref = db.collection(collection_name).document(document)
+#     doc_ref.set({"Product": product, "Company": vendor, "URL": url, "Summary": summary,
+#                  "trustability": trustability, "Graph": graph, "Expiry": expiry})
+
+# def read_data():
+#     users_ref = db.collection(collection_name)
+#     docs = users_ref.stream()
+#     print("Hi")
+#     for doc in docs:
+#         print(f"{doc.id} ***REMOVED*** {doc.to_dict()}")
+
+# def main():
+#     product_manager = ProductManager()
+#     all_products = product_manager.get_all_products()
+#     for product in all_products:
+#         print(f"📦 {product['Product']} by {product['Company']} "
+#               f"(Trust: {product['Trustability']})")
+
+# if __name__ == "__main__":
+#     main()
