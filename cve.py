@@ -50,7 +50,7 @@ def get_cve_records_by_keyword(product_name,use_exact_match):
         time.sleep(6)  # Respect NVD rate limits
 
     # === Output results ===
-    #print(f"Found {len(all_cves)} CVEs mentioning '{product_name}' in the last 365 days.\n")
+    #print(f"Found {len(all_cves)} CVEs mentioning '{product_name}' in the last 120 days.\n")
     #print(all_cves[0])
     product_risk=0
     n=len(all_cves)
@@ -79,6 +79,7 @@ def get_cve_records_by_keyword(product_name,use_exact_match):
 
     max_risk = n*1.5*2.5
     trust_score = 100 - (product_risk/max_risk)*100
+    trust_score = trust_score/100
     # --- Final JSON ---
     output = {
         "product": product_name,
