@@ -51,16 +51,19 @@ def get_cve_records_by_keyword(product_name,use_exact_match):
 
     # === Output results ===
     print(f"Found {len(all_cves)} CVEs mentioning '{product_name}' in the last 365 days.\n")
+    print(all_cves[0])
     for item in all_cves:
         cve_id = item["cve"]["id"]
         description = item["cve"]["descriptions"][0]["value"]
         base_score = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseScore"]
         base_severity = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseSeverity"]
+        vulnStatus = item["cve"]["id"]["vulnStatus"]
         results.append({
             "cve_id": cve_id,
             "description": description,
             "base_score": base_score,
-            "base_severity": base_severity
+            "base_severity": base_severity,
+            "vulnStatus": vulnStatus
         })
         #print(f"{cve_id}: {description} CVSS score: {base_score} CVSS Severity {base_severity}\n")
     # --- Build summary counts ---
