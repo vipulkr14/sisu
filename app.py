@@ -3,7 +3,7 @@
 import click
 import os
 import random
-import requests
+import process
 
 # --------------------------
 # Placeholder Processing Logic
@@ -33,7 +33,7 @@ def process_inputs(product, vendor, url, sha1):
     # Simulate some processing by generating a random score
     trust_score = round(random.uniform(0.0, 1.0), 3)
 
-    result = call_webhook_assess_product(
+    result = process.call_webhook_assess_product(
         product=product,
         company=vendor,
         sha1=sha1
@@ -45,85 +45,6 @@ def process_inputs(product, vendor, url, sha1):
         "trust_score": trust_score,
         "used_parameters": used_text
     }
-
-def call_webhook_assess_product(product=None, company=None, sha1=None):
-    """
-    Sends a POST request with JSON content containing
-    three parameters. Supports missing/None values.
-    """
-    url = "https://plantbase.app.n8n.cloud/webhook-test/assess-product"
-    payload = {
-        "product_name": product,
-        "company_name": company,
-        "sha1": sha1,
-    }
-
-    response = send_post_request(url, payload)
-
-    #TODO: Process this response to get the calculable value for scoring
-
-    return response
-
-def call_webhook_security_assessment(product=None, company=None, url_param=None):
-    """
-    Sends a POST request with JSON content containing
-    three parameters. Supports missing/None values.
-    """
-    url = "https://plantbase.app.n8n.cloud/webhook-test/security-assessment"
-    payload = {
-        "product_name": product,
-        "url": url_param,
-    }
-
-    response = send_post_request(url, payload)
-
-    #TODO: Process this response to get the calculable value for scoring
-
-    return response
-
-def send_post_request(url, payload):
-    """
-    Sends a POST request with JSON content containing
-    three parameters. Supports missing/None values.
-    """
-    headers = {
-        "Content-Type": "application/json"
-    }
-
-    try:
-        response = requests.post(url, json=payload, headers=headers)
-
-        # Raise exception if status is not 200-level
-        response.raise_for_status()
-
-        return {
-            "success": True,
-            "status_code": response.status_code,
-            "response_json": response.json() if response.content else None
-        }
-
-    except requests.exceptions.RequestException as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-# --------------------------
-# Placeholder Graph Generator
-# --------------------------
-def generate_graph(output_path):
-    """
-    Placeholder graph generation.
-    Creates a dummy text file representing a graph.
-    """
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-    with open(output_path, "w") as f:
-        f.write("GRAPH PLACEHOLDER\n")
-        f.write("Replace this with real visualization output.\n")
-
-    return output_path
-
 
 # --------------------------
 # CLI Definition
@@ -151,7 +72,7 @@ def cli(product, vendor, url, sha1, output):
     trust_score = process_inputs(product, vendor, url, sha1)
 
     # Generate placeholder graph
-    graph_path = generate_graph(output)
+    graph_path = process.generate_graph(product)
 
     # Final output
     click.echo(f"\n✨ The trust score is {trust_score}")
