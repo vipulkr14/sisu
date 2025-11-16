@@ -1,0 +1,236 @@
+{
+  "name": "License Link Finder for Products",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "github-license-finder",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "52b8132b-03ef-4452-9017-bd97e0e3ad8a",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2480,
+        608
+      ],
+      "webhookId": "8d01782c-296f-4d25-a85e-edce10b1470b"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "b752a48c-4bb6-4261-8681-fa139e8e3f63",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2704,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"product_name\": {\n      \"type\": \"string\",\n      \"description\": \"The same name from user input\"\n    },\n    \"vendor_name\": {\n      \"type\": \"string\",\n      \"description\": \"Vendor name\"\n    },\n    \"website\": {\n      \"type\": \"string\",\n      \"description\": \"Link to the main page of the tool/project/vendor\"\n    },\n    \"confidence\": {\n      \"type\": \"string\",\n      \"enum\": [\"high\", \"medium\", \"low\"],\n      \"description\": \"Confidence level\"\n    },\n    \"uncertainty_reason\": {\n      \"type\": \"string\",\n      \"description\": \"If confidence < high, explain here in 2 sentences, otherwise empty string\"\n    },\n    \"sources\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"link\": {\n            \"type\": \"string\",\n            \"description\": \"URL to the document\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"What is this file\"\n          },\n          \"extract\": {\n            \"type\": \"string\",\n            \"description\": \"Exact extract from the file\"\n          }\n        },\n        \"required\": [\"link\", \"description\", \"extract\"]\n      }\n    }\n  },\n  \"required\": [\"product_name\", \"vendor_name\", \"website\", \"confidence\", \"uncertainty_reason\", \"sources\"]\n}",
+        "autoFix": true
+      },
+      "id": "5ec32ae2-f4aa-42dc-aaf1-0f9e784a386b",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3184,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "14aeae07-424e-4088-965e-7432e1907ee0",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        3392,
+        608
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "5be31be2-f25d-487f-901d-ff4201b754db",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        832
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uuldnwmzwIJSmhOl",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        3056,
+        832
+      ],
+      "id": "242b0b48-d640-4a22-a5e9-2cf0bb8ac10f",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "9dOebG4nJ9yTXdQ7",
+          "name": "Tavily account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        3280,
+        960
+      ],
+      "id": "f8189814-d08f-45c7-ae78-574732ae6739",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uuldnwmzwIJSmhOl",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the raw product input:\n\n{\n  \"product_name\": {{ $json.body.product.product_name }} ,\n  \"company_name\": {{ $json.body.product.company_name }},\n  \"website\": {{ $json.body.product.website }}\n}\n\nProvide me the information on licenses and terms.\nIMPORTANT! Only return a valid URL that actually exists.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "\nYou are a security research assistant.\nYour task is to obtain URLs to Terms of Service/Data Processing Agreement/Open-source license, Privacy policy.\nIt is okay if one or more are not availble, but make sure to search for all of them.\nFor each of the files, analyze the content for mention of cybersecurity practices. \nProvide the extract with NO change.\n\nAssume the input fields are correct. \n\n\nThe input format is \n{\n  \"product_name\": \"product nae\",\n  \"vendor_name\": \"vendor name\",\n  \"website\": \"link to the main page of the tool/project/vendor\",\n}\n\n\nReturn STRICT JSON in the following format:\n\n{\n  \"product_name\": \"the same name from user input\",\n  \"vendor_name\": \"vendor name\",\n  \"website\": \"link to the main page of the tool/project/vendor\",\n  \"confidence\": \"high | medium | low\",\n  \"uncertainty_reason\": \"if confidence < high, explain here in 2 sentences | empty string\",\n  \"sources\": {[\"link\": \"url\", \n  \"description\": \"what is this file\",\n  \"extract\":\"exact extract from the file\"]},\n}\n\nUse Tavily to verify the links! Don't send it empty input.\nIMPORTANT! Only return a valid URL that actually exists.\nDo NOT use any additional formatting. REPLY WITH RAW JSON.\n"
+        }
+      },
+      "id": "70bacf82-7085-45f3-a378-68b6c03810e8",
+      "name": "License Finder Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2992,
+        608
+      ],
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "License Finder Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "License Finder Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "License Finder Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "License Finder Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "License Finder Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5edf6151-fe0e-45b8-8d78-bea771b739f5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af936dc80af5cb25f9aebeb032f8ed42f9316b637b7f7380c1ff088f6b7c7de"
+  },
+  "id": "T2M2JC8a4JKUNKad",
+  "tags": []
+}
