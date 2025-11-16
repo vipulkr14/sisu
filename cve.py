@@ -50,34 +50,54 @@ def get_cve_records_by_keyword(product_name,use_exact_match):
         time.sleep(6)  # Respect NVD rate limits
 
     # === Output results ===
-    #print(f"Found {len(all_cves)} CVEs mentioning '{product_name}' in the last 120 days.\n")
-    #print(all_cves[0])
+    print(f"Found {len(all_cves)} CVEs mentioning '{product_name}' in the last 120 days.\n")
+    print(all_cves[0])
     product_risk=0
     n=len(all_cves)
     for item in all_cves:
         cve_id = item["cve"]["id"]
         description = item["cve"]["descriptions"][0]["value"]
-        base_score = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseScore"]
-        base_severity = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseSeverity"]
-        exploitabilityScore = item["cve"]["metrics"]["cvssMetricV31"][0]["exploitabilityScore"]
-        impactScore = item["cve"]["metrics"]["cvssMetricV31"][0]["impactScore"]
         vulnStatus = item["cve"]["vulnStatus"]
         status_penalty = 0 if vulnStatus == "Analyzed" else 0.05 if vulnStatus == "Awaiting analysis" else -0.2
-        badness = (0.55*exploitabilityScore/10)+(0.4*impactScore/10)+status_penalty
-        severity_weight = 2.5 if base_severity == "CRITICAL" else 1.5 if base_severity == "HIGH" else 1.0 if base_severity == "MEDIUM" else 0.5 
-        product_risk += badness*severity_weight
-        results.append({
-            "cve_id": cve_id,
-            "description": description,
-            "base_score": base_score,
-            "base_severity": base_severity,
-            "vulnStatus": vulnStatus,
-            "exploitabilityScore": exploitabilityScore,
-            "impactScore": impactScore
-        })
+        cvss31Type = item["cve"]["metrics"].get("cvssMetricV31")
+        if cvss31Type is not None:
+            base_score = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseScore"]
+            base_severity = item["cve"]["metrics"]["cvssMetricV31"][0]["cvssData"]["baseSeverity"]
+            exploitabilityScore = item["cve"]["metrics"]["cvssMetricV31"][0]["exploitabilityScore"]
+            impactScore = item["cve"]["metrics"]["cvssMetricV31"][0]["impactScore"]
+            badness = (0.55*exploitabilityScore/10)+(0.4*impactScore/10)+status_penalty
+            severity_weight = 2.5 if base_severity == "CRITICAL" else 1.5 if base_severity == "HIGH" else 1.0 if base_severity == "MEDIUM" else 0.5 
+            product_risk += badness*severity_weight
+            results.append({
+                "cve_id": cve_id,
+                "description": description,
+                "base_score": base_score,
+                "base_severity": base_severity,
+                "vulnStatus": vulnStatus,
+                "exploitabilityScore": exploitabilityScore,
+                "impactScore": impactScore
+            })
+        elif not item["cve"]["metrics"]["cvssMetricV40"] is None:
+            base_score = item["cve"]["metrics"]["cvssMetricV40"][0]["cvssData"]["baseScore"]
+            base_severity = item["cve"]["metrics"]["cvssMetricV40"][0]["cvssData"]["baseSeverity"]
+            exploitabilityScore = base_score * 0.4
+            impactScore = base_score * 0.6
+            badness = (0.55*exploitabilityScore/10)+(0.4*impactScore/10)+status_penalty
+            severity_weight = 2.5 if base_severity == "CRITICAL" else 1.5 if base_severity == "HIGH" else 1.0 if base_severity == "MEDIUM" else 0.5 
+            product_risk += badness*severity_weight
+            results.append({
+                "cve_id": cve_id,
+                "description": description,
+                "base_score": base_score,
+                "base_severity": base_severity,
+                "vulnStatus": vulnStatus,
+                "exploitabilityScore": exploitabilityScore,
+                "impactScore": impactScore
+            })
+
         #print(f"{cve_id}: {description} CVSS score: {base_score} CVSS Severity {base_severity}\n")
 
-    max_risk = n*1.5*2.5
+    max_risk = n*1*2.5
     trust_score = 100 - (product_risk/max_risk)*100
     trust_score = trust_score/100
     # --- Final JSON ---
@@ -86,7 +106,7 @@ def get_cve_records_by_keyword(product_name,use_exact_match):
         "trust_score": trust_score,
         "data": results
     }
+    print(output)
     return output
-    #print(output)
 
-#get_cve_records_by_keyword(product_name="Zoom", use_exact_match=False)
+#get_cve_records_by_keyword(product_name="Skype", use_exact_match=False)

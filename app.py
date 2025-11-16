@@ -6,9 +6,17 @@ import random
 import process
 from datetime import date, datetime, timedelta
 import cache
+import graph
+import report
 
-def is_expired_date_only(expiry_date):
-    return expiry_date < date.today()
+def is_expired(expiry_date):
+    now_naive = datetime.now()  # Current time (naive)
+    
+    # If expiry_date is aware, make it naive
+    if expiry_date.tzinfo is not None:
+        expiry_date = expiry_date.replace(tzinfo=None)
+    
+    return expiry_date < now_naive
 
 def process_inputs(product, vendor, sha1):
     """
@@ -27,8 +35,7 @@ def process_inputs(product, vendor, sha1):
     else:
         #If expired then calculate again and create in cache
         expiry_date = fetched_data["expiry_date"]
-        print("Expired data!\n")
-        if is_expired_date_only(expiry_date=expiry_date):
+        if is_expired(expiry_date=expiry_date):
             print("Expired data!\n")
             print("Fetching data ...\n")
             id=fetched_data["id"]
@@ -42,12 +49,12 @@ def process_inputs(product, vendor, sha1):
 # --------------------------
 # Placeholder Graph Generator
 # --------------------------
-def generate_graph(product):
+def generate_graph(product, trust_scores):
     """
     Placeholder graph generation.
     Creates a dummy text file representing a graph.
     """
-    output_path = graph.create_graph(product, 5,6,3,1)
+    output_path = graph.create_graph(product=product, trust_scores=trust_scores)
 
     return output_path
 
@@ -71,12 +78,12 @@ def cli(product, vendor, sha1):
     final_result = process_inputs(product, vendor, sha1)
 
     # Generate placeholder graph
-    #graph_path = process.generate_graph(final_result)
+    graph_path = generate_graph(product, final_result["trust_scores"])
 
     #generate report
-
+    report_path = report.generate_report(product=product, data=final_result, graph_path=graph_path)
     # Final output
-    click.echo(f"📊 The report can be found at: {final_result}\n")
+    click.echo(f"📊 The report can be found at: {report_path}\n")
 
 
 # Entry point
