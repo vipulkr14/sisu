@@ -2,8 +2,8 @@
 
 > Building SISU for CISOs – trusted summaries in minutes.
 
-PlantBase is an AI-assisted security assessor that turns a product name, URL, vendor, or binary hash into a CISO-ready, decision-ready brief.  
-It fetches public security signals from the web, normalizes and scores them along four major axes, and produces both human-readable and machine-readable outcomes:
+SISU is an AI-assisted security assessor that turns a product name, URL, vendor, or binary hash into a CISO-ready, decision-ready brief.  
+It fetches public security signals from the web, and produces both human-readable and machine-readable outcomes:
 
 - A concise decision sentence for the CISO (approve / cautious approve / do not approve / insufficient evidence)
 - A normalized safety score in the range `[0.0, 1.0]`
@@ -83,7 +83,7 @@ The logical architecture corresponds to:
 
 
 
-### Cache-Aware Classification Alternative
+### Cache-Aware Classification Alternative (not fully implemented)
 
 To optimize for repeated or similar products:
 
