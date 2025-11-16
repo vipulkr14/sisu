@@ -1,6 +1,5 @@
 import requests
 import os
-import graph
 import cve
 
 def call_webhook_assess_product(product=None, company=None, sha1=None):
@@ -329,10 +328,10 @@ def prepare_final_result(product=None, vendor=None, sha1=None):
 
     sources = {
         'sources_assess_product': sources_assess_product,
-        'sources_security_assessment': sources_security_assessment,
+        #'sources_security_assessment': sources_security_assessment,
         'sources_license_scan': sources_license_scan,
-        'sources_virustotal': sources_virustotal,
-        'sources_certs_scan': sources_certs_scan,
+        #'sources_virustotal': sources_virustotal,
+        #'sources_certs_scan': sources_certs_scan,
         'sources_cve': sources_cve
     }
 
@@ -353,8 +352,7 @@ def prepare_final_result(product=None, vendor=None, sha1=None):
         "Summary": justification,
         "Sources": sources
     }
-
-    return final_result
+    return final_report
 
 
 #for testing only
