@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "massive-boulder-478310-q0-ceb05684a511.json"
 collection_name="result-cache"
-document="4q4FdTUqbCtOlP7R9HNx"
+#document="4q4FdTUqbCtOlP7R9HNx"
 database_name="sisu-store"
 
 class ProductManager:
@@ -364,10 +364,10 @@ class ProductManager:
 #     for doc in docs:
 #         print(f"{doc.id} => {doc.to_dict()}")
 
-def main():
-    product_manager = ProductManager()
-    product = product_manager.get_product_by_name(product_name="P1")
-    print(product["id"])
+# def main():
+#     product_manager = ProductManager()
+#     product = product_manager.get_product_by_name(product_name="P1")
+#     print(product["id"])
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

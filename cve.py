@@ -50,10 +50,17 @@ def get_cve_records_by_keyword(product_name,use_exact_match):
         time.sleep(6)  # Respect NVD rate limits
 
     # === Output results ===
-    print(f"Found {len(all_cves)} CVEs mentioning '{product_name}' in the last 120 days.\n")
-    print(all_cves[0])
-    product_risk=0
+    #print(f"Found {len(all_cves)} CVEs mentioning '{product_name}' in the last 120 days.\n")
+    #print(all_cves[0])
     n=len(all_cves)
+    if n==0:
+        return {
+        "product": product_name,
+        "trust_score": 1,
+        "data": results
+        }
+
+    product_risk=0
     for item in all_cves:
         cve_id = item["cve"]["id"]
         description = item["cve"]["descriptions"][0]["value"]
