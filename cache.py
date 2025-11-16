@@ -2,6 +2,7 @@ import os
 from google.cloud import firestore
 from datetime import datetime
 from typing import List, Dict, Optional
+from datetime import datetime, timedelta
 
 # The `project` parameter is optional and represents which project the client
 # will act on behalf of. If not supplied, the client falls back to the default
@@ -9,7 +10,7 @@ from typing import List, Dict, Optional
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "massive-boulder-478310-q0-ceb05684a511.json"
 collection_name="result-cache"
-document="4q4FdTUqbCtOlP7R9HNx"
+#document="4q4FdTUqbCtOlP7R9HNx"
 database_name="sisu-store"
 
 class ProductManager:
@@ -26,8 +27,7 @@ class ProductManager:
         self.db = firestore.Client(project="massive-boulder-478310-q0", database=database_name)
         self.collection = self.db.collection(collection_name)
     
-    def create_product(self, product: str, vendor: str, url: str, summary: str, 
-                      trustability: float, graph: str, expiry: str) -> str:
+    def create_product(self, product: str, product_data: dict) -> str:
         
         """
         Create a new product document
@@ -45,17 +45,22 @@ class ProductManager:
             Document ID of the created product
         """
         try:
-            product_data = {
-                "Product": product,
-                "Company": vendor,
-                "URL": url,
-                "Summary": summary,
-                "trustability": trustability,
-                "Graph": graph,
-                "Expiry": expiry,
-                "created_at": firestore.SERVER_TIMESTAMP,
-                "updated_at": firestore.SERVER_TIMESTAMP
-            }
+            expiry_date = datetime.now() + timedelta(days=30)
+            product_data["expiry_date"] = expiry_date
+            product_data["created_at"] = firestore.SERVER_TIMESTAMP
+            product_data["updated_at"] = firestore.SERVER_TIMESTAMP
+
+            # product_data = {
+            #     "Product": product,
+            #     "Company": vendor,
+            #     "URL": url,
+            #     "Summary": summary,
+            #     "trustability": trustability,
+            #     "Graph": graph,
+            #     "Expiry": expiry,
+            #     "created_at": firestore.SERVER_TIMESTAMP,
+            #     "updated_at": firestore.SERVER_TIMESTAMP
+            # }
             
             doc_ref = self.collection.document()
             doc_ref.set(product_data)
@@ -171,9 +176,7 @@ class ProductManager:
             print(f"❌ Error updating product: {e}")
             return False
     
-    def update_full_product(self, product_id: str, product: str, vendor: str, 
-                           url: str, summary: str, trustability: float, 
-                           graph: str, expiry: str) -> bool:
+    def update_full_product(self, product_id: str, product: str, product_data: dict) -> bool:
         """
         Update all fields of a product
         
@@ -185,16 +188,20 @@ class ProductManager:
             True if successful, False otherwise
         """
         try:
-            product_data = {
-                "Product": product,
-                "Company": vendor,
-                "URL": url,
-                "Summary": summary,
-                "trustability": trustability,
-                "Graph": graph,
-                "Expiry": expiry,
-                "updated_at": firestore.SERVER_TIMESTAMP
-            }
+            expiry_date = datetime.now() + timedelta(days=30)
+            product_data["expiry_date"] = expiry_date
+            product_data["updated_at"] = firestore.SERVER_TIMESTAMP
+
+            # product_data = {
+            #     "Product": product,
+            #     "Company": vendor,
+            #     "URL": url,
+            #     "Summary": summary,
+            #     "trustability": trustability,
+            #     "Graph": graph,
+            #     "Expiry": expiry,
+            #     "updated_at": firestore.SERVER_TIMESTAMP
+            # }
             
             doc_ref = self.collection.document(product_id)
             doc_ref.set(product_data, merge=False)  # Replace entire document
@@ -359,10 +366,8 @@ class ProductManager:
 
 # def main():
 #     product_manager = ProductManager()
-#     all_products = product_manager.get_all_products()
-#     for product in all_products:
-#         print(f"📦 {product['Product']} by {product['Company']} "
-#               f"(Trust: {product['Trustability']})")
+#     product = product_manager.get_product_by_name(product_name="P1")
+#     print(product["id"])
 
 # if __name__ == "__main__":
 #     main()
