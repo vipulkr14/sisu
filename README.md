@@ -292,7 +292,26 @@ Replace the values of `--product`, `--vendor`, and `--sha1` as needed for other 
 
 ---
 
+## Tech Stack
 
+   - n8n : Orchestration for the AI Agent-based workflows
+     - workflow jsons available in n8n_files folder
+     - example workflow image: img/sample-n8n-flow.png
+   - Gemini AI: The AI agent of choice, used in n8n workflow
+   - Tivaly: A browser API for LLM used in n8n  
+   - Firestore: The NoSQL database to store the fetched and calculated records in Google Cloud, stores Json data
+     - cache.py file has the APIs to fetch/update data   
+   - Python: the codebase, integrates all the components, provides the user interface as CLI, calculation and report generation
+     - click: library used to make CLI interface  
+     - plotly: library used to generate graph
+     - jinja2: library used to generate report html
+   - Code Files:
+     - app.py: main file defining the CLI, starting point
+     - process.py: the driver file, connects to all the components and the calculation
+     - cve.py: fetch the CVE data and calculate the trust score
+     - graph.py: graph generator function lives here
+     - report.py: report generator function lives here
+       
 
 
 
