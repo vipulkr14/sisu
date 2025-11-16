@@ -46,9 +46,6 @@ def process_inputs(product, vendor, sha1):
     return fetched_data
 
 
-# --------------------------
-# Placeholder Graph Generator
-# --------------------------
 def generate_graph(product, trust_scores):
     """
     Placeholder graph generation.

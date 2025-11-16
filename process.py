@@ -35,7 +35,7 @@ def call_webhook_security_assessment(product=None, company=None, url_param=None)
     three parameters. Supports missing/None values.
     """
     print("call_webhook_security_assessment ...\n")
-    url = "https://plantbase.app.n8n.cloud/webhook/security-assessment"
+    url = "https://plantbase.app.n8n.cloud/webhook/6c08ca4a-e308-4b02-9c0e-2401a333e2c5"
     payload = {
         "product_name": product,
         "website": url_param,
@@ -49,7 +49,7 @@ def call_webhook_security_assessment(product=None, company=None, url_param=None)
     data = response.get("response_json")
     binary = data["security"]["binary"]
     # if binary is 0 then do not include
-    data["trust_score"] = binary
+    data["trust_score"] = 0 if binary == 0  else 1
     data["trust_flag"] = False if binary == 0 else True
     data["confidence_score"] = 0 if binary == 0  else 1
     #TODO: Process this response to get the calculable value for scoring
@@ -98,7 +98,8 @@ def call_webhook_virustotal(product=None, company=None, sha1=None):
     }
     final_payload = payload
     response = send_post_request(url, final_payload)
-
+    if response.get("response_json") == None:
+        return call_webhook_virustotal(product=None, company=None, sha1=None)
     #TODO: Process this response to get the calculable value for scoring
     data = response.get("response_json")
     # if benign = 1 then we trust that hash matches the product
@@ -356,19 +357,19 @@ def prepare_final_result(product=None, vendor=None, sha1=None):
 
 
 #for testing only
-def main():
-    # product='1Password'
-    # company='1Password'
-    # sha1='e5ee385388b5fa57cc8374102d779d3c9849a57f'
-    # response = call_webhook_assess_product(product=product,company=company,sha1=sha1)
-    # print(response)
-    product="Zoom"
-    company="Zoom Video Communications, Inc."
-    sha1="fd797e4071afe131104c1d29cd0cb606da62f3d5"
-    url="https://www.zoom.com/"
-    # response=call_webhook_certs_scan(product=product,company=company,url_param=url)
-    response=call_webhook_security_assessment(product=product, company=company, url_param=url)
-    print(response)
+# def main():
+#     # product='1Password'
+#     # company='1Password'
+#     # sha1='e5ee385388b5fa57cc8374102d779d3c9849a57f'
+#     # response = call_webhook_assess_product(product=product,company=company,sha1=sha1)
+#     # print(response)
+#     product="Zoom"
+#     company="Zoom Video Communications, Inc."
+#     sha1="fd797e4071afe131104c1d29cd0cb606da62f3d5"
+#     url="https://www.zoom.com/"
+#     # response=call_webhook_certs_scan(product=product,company=company,url_param=url)
+#     response=call_webhook_security_assessment(product=product, company=company, url_param=url)
+#     print(response)
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

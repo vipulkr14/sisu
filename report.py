@@ -12,6 +12,10 @@ def encode_image_to_base64(path):
     with open(path, "rb") as img:
         return base64.b64encode(img.read()).decode("utf-8")
 
+def clean_html(html):
+    # Remove or replace problematic characters
+    return html.encode('utf-8', 'ignore').decode('utf-8')
+
 
 def generate_report(product, data, graph_path):
     # load Jinja2 template
@@ -26,8 +30,9 @@ def generate_report(product, data, graph_path):
 
     # write output
     report_path = "output/"+product+"_report.html"
-    with open(report_path, "w") as f:
-        f.write(html)
+    with open(report_path, "w", encoding="utf-8") as f:
+        cleaned_html = clean_html(html)
+        f.write(cleaned_html)
 
     #print("✓ Report generated: output/final_report.html")
     return report_path
