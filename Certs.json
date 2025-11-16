@@ -1,0 +1,497 @@
+{
+  "name": "Certs",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "8c532972-bfd6-40dc-9ff2-9cb0dab6d135",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "70315069-e8fe-4dc5-b59b-a91c7b045255",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -704,
+        -256
+      ],
+      "webhookId": "8c532972-bfd6-40dc-9ff2-9cb0dab6d135"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "04c419cc-c782-49f3-8064-9abbca2e8d7d",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the product info:\n\n{\n  \"product_name\": \"{{ $json.body.product_name }}\",\n  \"product_website\": \"{{ $json.body.website }}\",\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "[START OF PROMPT]\n\n### Context\n\nYou are an LLM tasked with analyzing a vendor’s public website. Your role is to determine whether specific security-related information exists on the website. Your conclusions must be strictly constrained, deterministic, and aligned with the rules below.\nUse Search in Tavily for finding the website security page.\n\n### Requirements\n\nDETERMINISTIC RULES:\nTo avoid hallucination and ensure consistency:\nDo not generate or invent URLs.\nUse Search in Tavily for finding the website security page.\nOnly cite URLs that were clearly present in the provided website content.\nIf unsure, say \"I'm not sure\".\nNever fabricate certifications, policies, organizational names, advisory listings, or certificate IDs.\nUse only the allowed binary codes:\n1 = directly found on the website\n0 = not found but inference/derivation is possible\n-1 = inconclusive (cannot find nor confidently derive)\nIf unsure at any point, include “I’m not sure” in the reasoning explanation.\nFollow the output format exactly (structure, labels, and order).\nGENERAL RULES\nFor each category, output exactly one line in this format:\n[1, 0, or -1] | description_string | reasoning_explanation\nMeaning of the values:\n1 = Directly found\ndescription_string: brief description of the exact item\n (e.g., “ISO/IEC 27001:2022 certificate ID 2032974”)\nreasoning_explanation must include:\nhow you located it\nthe exact URL\na short quote or summary of the section\n0 = Not found, but derived\ndescription_string: inferred/derived information or explicit “none found”\nreasoning_explanation must:\nexplain where you searched\nexplain why it is not present\ndescribe the reasoning for the inferred conclusion\n-1 = Inconclusive\nUse -1 if:\ninformation cannot be found, and\nyou cannot derive it confidently, and\nthe website content is too ambiguous or insufficient\nreasoning_explanation must:\nexplain where you looked\nstate explicitly: \"I'm not sure; insufficient information.\"\nCATEGORY TO ANALYZE\nProvide one output line for each:\nISO/IEC 27001, SOC 2, other relevant information security certifications\nAfter the human-readable lines, output a JSON object matching this schema exactly:\n\n{\n  \"iso27001\": {\n    \"binary\": \"1 | 0 | -1\",\n    \"description\": \"string\",\n    \"reasoning\": \"string\",\n  },\n \"soc2\": {\n    \"binary\": \"1 | 0 | -1\",\n    \"description\": \"string\",\n    \"reasoning\": \"string\",\n  },\n \"others\": {\n    \"binary\": \"1 | 0 | -1\",\n    \"description\": \"string\",\n    \"reasoning\": \"string\",\n  }\n}\n\nNotes:\nEvery field must be present.\nReasoning must include “I’m not sure” when applicable.\nNo additional fields or variations are allowed.\n\n\n[END OF PROMPT]\n"
+        }
+      },
+      "id": "850062c0-59f0-4556-82c7-ff9c4c611a7a",
+      "name": "Security Assessment Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        336,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "securityBrief",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "status",
+              "value": "completed",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1c7afbc6-ce91-4c9f-aa41-35e6c34a8519",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"product\": \"{{ $('Ref').item.json.body.product_name }}\",\n  \"security\": {{ JSON.stringify($('Security Assessment Agent').item.json.output) }}\n} ",
+        "options": {}
+      },
+      "id": "1a4748ed-9a74-4440-8618-bdb5b78a9d58",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1488,
+        -112
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -112
+      ],
+      "id": "d52ecb3e-b777-404e-a096-93ff89380cda",
+      "name": "Ref"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "pv4NLLa3EzhnX2DG",
+          "mode": "list",
+          "cachedResultName": "Sisu data",
+          "cachedResultUrl": "/projects/57wKllvzCpkuiqD1/datatables/pv4NLLa3EzhnX2DG"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        16
+      ],
+      "id": "f5da7c1a-a2df-4140-b08c-4820c4b36d90",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        112
+      ],
+      "id": "cf67aa92-16da-4afb-b920-fe85066c5a53",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d9b4e03f-c692-42e5-9c19-45fe55dfd613",
+              "name": "product_name",
+              "value": "={{ $json.product_name }}",
+              "type": "string"
+            },
+            {
+              "id": "be310272-d315-47f0-9aa8-7787a60fd5f5",
+              "name": "website",
+              "value": "={{ $json.website }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        16
+      ],
+      "id": "93a8d3ef-a8ab-44de-8b3e-25a4be775c5b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"vendor_security_page\": {\n    \"binary\": \"1 | 0 | -1\",\n    \"description\": \"string\",\n    \"reasoning\": \"string\"\n  }\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        112
+      ],
+      "id": "e5351224-0b4c-41a3-9593-2f2413f2b87d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        560,
+        256
+      ],
+      "id": "b9c1277c-875d-41de-aea9-98c952a84fbd",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=URLs are in the following text:\n\n{{ $json.output.iso27001.reasoning }}\n{{ $json.output.soc2.reasoning }}\n{{ $json.output.others.reasoning }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "[START OF PROMPT]\n\n### Context\n\nYou are an LLM tasked with verifying a list of URLs (links). Your role is to determine whether all provided links are valid and reachable without errors.\n\nYour conclusions must be strictly constrained, deterministic, and aligned with the rules below.\n\n### Requirements\n\n#### DETERMINISTIC RULES\n\nTo avoid hallucination and ensure consistency:\n\n- Find all the URLs in the the user input.\n- Use HTTP Request Tool to verify the website.\n- Do not generate or invent URLs.\n  Only use and check the exact URLs that are explicitly provided to you.\n- Do not modify URLs.\n  Do not change schemes, paths, parameters, or domains in an attempt to \"fix\" them.\n- When checking a URL:\n  - Consider it valid if it can be reached and does not return an HTTP error (no 4xx or 5xx status) or obvious network failure.\n  - HTTP redirects (3xx) that ultimately resolve successfully are acceptable and should be treated as valid.\n- If any URL:\n  - returns an HTTP error (4xx or 5xx), or\n  - cannot be reached, or\n  - you are unable to confidently verify its status,\n  then treat that URL as not verified.\n\nWhen in doubt about any link’s status, you must treat the overall result as not verified.\n\n#### GENERAL RULES\n\n- You must check every URL provided.\n- You must not assume that a URL works based solely on its appearance or structure.\n- If tooling or checks fail for any single URL, the overall result must be considered a failure (result \"0\").\n\n### OUTPUT FORMAT\n\nYour entire response must consist of only the following JSON object, with no extra text before or after it:\n\n{\n  \"result\": \"1\"\n}\n\nor\n\n{\n  \"result\": \"0\"\n}\n\nWhere:\n\n- \"1\" — if all provided links are successfully verified as existing and reachable without errors.\n- \"0\" — if at least one link:\n  - does not exist, or\n  - returns an error (4xx/5xx), or\n  - cannot be confidently verified for any reason.\n\nNo additional text, fields, comments, or formatting are allowed in the output.\nOnly output exactly the JSON object in this schema.\n\n[END OF PROMPT]\n"
+        }
+      },
+      "id": "feb36bfe-abdb-45e2-8618-7355d65949f9",
+      "name": "Security Assessment Agent1",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        848,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        832,
+        112
+      ],
+      "id": "bc3c428f-b114-466d-9204-67134e532e3c",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "crawl",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        192
+      ],
+      "id": "61edcc72-8172-4535-9f13-037fb96d3d64",
+      "name": "Crawl in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "NBosukmzkl1HqdBh",
+          "name": "Tavily account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        336,
+        128
+      ],
+      "id": "d8f98fa5-378b-411f-971f-8abf37c7f7ae",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "NBosukmzkl1HqdBh",
+          "name": "Tavily account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the web and retrieve information from URLs. You can search GitHub or access GitHub repository pages to find license information.",
+        "url": "={{ $fromAI('url', 'The URL to fetch information from', 'string') }}",
+        "options": {}
+      },
+      "id": "ecfd7578-023d-4db3-b8fd-7ae71b35e30c",
+      "name": "HTTP Request Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        976,
+        208
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security Assessment Agent": {
+      "main": [
+        [
+          {
+            "node": "Security Assessment Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ref": {
+      "main": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security Assessment Agent1": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Security Assessment Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crawl in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Security Assessment Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Security Assessment Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "027ac45a-d6e5-4e92-8f3f-35710ffbcc38",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af936dc80af5cb25f9aebeb032f8ed42f9316b637b7f7380c1ff088f6b7c7de"
+  },
+  "id": "DtpBFOPMQeEeG8wb",
+  "tags": []
+}

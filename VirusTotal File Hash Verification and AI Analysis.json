@@ -1,0 +1,249 @@
+{
+  "name": "VirusTotal File Hash Verification and AI Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "virustotal-check",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1eed889d-7587-491e-83c8-793401ad0cad",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2048,
+        1392
+      ],
+      "webhookId": "7a58d934-160a-4779-b22e-f9bde88d7a84"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "virusTotalApiUrl",
+              "value": "https://www.virustotal.com/api/v3/files",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "220c94e4-99a1-43d1-af14-db775fcbd95e",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2272,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Configuration').first().json.virusTotalApiUrl }}/{{ $json.body.hash }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "x-apikey",
+              "value": "06923687df5bb8aaca48ac394018bf1b3caa7c6aa90160284e74f3b7ec416791"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8034e165-bc8e-4b99-9ed1-e155f51a2693",
+      "name": "Query VirusTotal API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2496,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Input data:\nProduct Name: {{ $('Webhook Trigger').item.json.body.product_name }}\nCompany Name: {{ $('Webhook Trigger').item.json.body.company_name }}\nHash: {{ $('Webhook Trigger').item.json.body.hash }}\n\nVirusTotal API Response:\n{{ JSON.stringify($json, null, 2) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a security analysis assistant. Your task is to:\n\nAnalyze the provided VirusTotal API response for the given file hash.\n\nVerify that the hash, product name, and company name accurately match the information contained in the VirusTotal response.\n\nProduce a short, 2–3 sentence summary highlighting the key security findings.\n\nFocus your analysis on:\n\nDetection ratios\n\nAny malicious or suspicious flags\n\nThe overall safety assessment of the file\n\nPay special attention to whether the binary value and the product name align with the VirusTotal data.\n\nReturn the final output strictly as RAW JSON in the following format:\n\n{\n  \"hash\": {\n    \"benign\": \"1 | 0 | -1 \",\n    \"reasoning\": \"string\"\n  }\n}"
+        }
+      },
+      "id": "9b4d269e-c94f-4f87-a1a1-04b8abca063a",
+      "name": "AI Analysis Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2720,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "15f0e128-2022-4733-a069-e0bb2a354b79",
+      "name": "Google Gemini Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2800,
+        1616
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract AI output and last_analysis_stats from the data\nconst items = $input.all();\n\n// Get AI output from the first item\nconst aiOutput = $input.first().json.output.bcd9fd198cab024450c1f2d09d83aeeeee6a2a4a;\n\n// Get last_analysis_stats from the data\n// This should be available from the VirusTotal API response\nconst lastAnalysisStats = $('Query VirusTotal API').first().json.data.attributes.last_analysis_stats || {};\n\n// Format as JSON with the required fields\nreturn [\n  {\n    json: {\n      ai_output: aiOutput,\n      last_analysis_stats: lastAnalysisStats\n    }\n  }\n];"
+      },
+      "id": "a976e288-adb7-4c7a-a0cc-083c6ebe1d9e",
+      "name": "Format Final Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3072,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ffbd4a6e-ed4b-406e-8e14-a94db1ee86ba",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        3296,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"bcd9fd198cab024450c1f2d09d83aeeeee6a2a4a\": {   \"benign\": \"1\",    \"reasoning\": \"The provided hash, product name (PeaZip), and company name (Giorgio Tani) accurately match the VirusTotal report. Out of 76 security vendors, 54 reported the file as undetected, with no malicious or suspicious flags from traditional antivirus scans. While Zemana's behavioral analysis noted a 'dll-injection' event, the overwhelming consensus from other engines suggests the file is benign.\" }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2896,
+        1600
+      ],
+      "id": "261fb307-9d0b-45a0-9b35-660f6611cf00",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {
+    "Webhook Trigger": [
+      {
+        "json": {
+          "product_name": "PeaZip",
+          "company_name": "Giorgio Tani",
+          "hash": "bcd9fd198cab024450c1f2d09d83aeeeee6a2a4a"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Query VirusTotal API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query VirusTotal API": {
+      "main": [
+        [
+          {
+            "node": "AI Analysis Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Analysis Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analysis Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Final Output": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Analysis Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0a3e915b-581b-444f-82a0-33cfd97122b0",
+  "meta": {
+    "instanceId": "7af936dc80af5cb25f9aebeb032f8ed42f9316b637b7f7380c1ff088f6b7c7de"
+  },
+  "id": "xe4vko4KpcXZn8LF",
+  "tags": []
+}

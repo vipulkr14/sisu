@@ -1,0 +1,387 @@
+{
+  "name": "Categorization",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "37c13dbd-aa2d-42b5-bb84-d8c6838b1694",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "df376112-bd30-4858-8885-009e9bd69952",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2592,
+        928
+      ],
+      "webhookId": "37c13dbd-aa2d-42b5-bb84-d8c6838b1694"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "5a3f5de3-54f1-4299-8f10-51cf5eafb34a",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2384,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "securityBrief",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "status",
+              "value": "completed",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "538252d0-4311-45d6-aa1f-e460e06efbf4",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1184,
+        912
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -2144,
+        928
+      ],
+      "id": "ad294715-2b4d-46e9-9308-796acffdaef4",
+      "name": "Ref"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1184,
+        1296
+      ],
+      "id": "07f4b387-71b1-47db-a5de-aeac574d3fba",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        1168
+      ],
+      "id": "1d874f5a-08b6-4ae3-8503-1436dc48ad44",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "PM0MLmNU7DlUtW4X",
+          "name": "Tavily account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ \n  $('Webhook Trigger').item.json.body\n}}",
+        "guardrails": {
+          "jailbreak": {
+            "value": {
+              "threshold": 0.7
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.guardrails",
+      "typeVersion": 1,
+      "position": [
+        -1936,
+        928
+      ],
+      "id": "1a57f0fa-70ce-490d-b8b3-c8d030300fab",
+      "name": "Guardrails"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2016,
+        1136
+      ],
+      "id": "8e77ead6-369e-443f-a47d-479a71773fa2",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1792,
+        1296
+      ],
+      "id": "a0f718a5-25b1-4038-a37d-1d69b15b0a12",
+      "name": "fail 1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"category\": \"{{ $('Classification Agent').item.json.output.category }}\",\n  \"key_words\": \"{{ $('Classification Agent').item.json.output.key_words }}\"\n} ",
+        "options": {}
+      },
+      "id": "772d41a8-fa8f-4544-a21d-f0bc3408beb1",
+      "name": "success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -976,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        1152
+      ],
+      "id": "68a5cebc-d599-46c8-911a-68bde889bd7c",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"category\": \"string\",\n  \"key_words\": [\"string\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1264,
+        1152
+      ],
+      "id": "409b1497-81ef-4485-8f30-901b72b4a4a4",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the product info:\n\n{\n  \"vendor_name\": \"{{ $('Ref').item.json.body.vendor_name }}\",\n  \"product_name\": \"{{ $('Ref').item.json.body.product_name }}\",\n  \"sha1\": \"{{ $('Ref').item.json.body.sha1 }}\",\n  \"website\": \"{{ $('Ref').item.json.body.website }}\",\n  \"hq_country\": \"{{ $('Ref').item.json.body.hq_country }}\",\n  \"github_repo\": \"{{ $('Ref').item.json.body.github_repo }}\",\n  \"summary_one_liner\": \"{{ $('Ref').item.json.body.summary_one_liner }}\",\n  \"confidence\": \"{{ $('Ref').item.json.body.confidence }}\",\n  \"uncertainty_reason\": \"{{ $('Ref').item.json.body.uncertainty_reason }}\",\n  \"sources\": {{ JSON.stringify($('Ref').item.json.body.sources) }}\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a software product classifier.\n\nYour task is to analyze a single software product provided in JSON form and classify it in two ways:\n\nSelect exactly one high-level category from the 10 allowed categories.\n\nGenerate exactly three key-word terms describing the product’s function.\n\nYour classification MUST be based strictly on evidence found in:\n\nthe JSON fields,\n\nthe product’s official website (website),\n\nits GitHub repository (github_repo, unless “notfound”),\n\nand its sources.\n\nYou MUST avoid guessing or hallucinating functionality not supported by evidence.\n\nYour response MUST be valid JSON only, with no explanation text.\n\nAllowed Categories (choose exactly one):\n{\n  \"allowed_categories\": [\n    \"Security Software\",\n    \"Developer Tools\",\n    \"Cloud Infrastructure & Platforms\",\n    \"Data & Analytics\",\n    \"AI & Machine Learning\",\n    \"Productivity & Collaboration\",\n    \"Business Applications\",\n    \"Content, Media & Design\",\n    \"Networking & Connectivity\",\n    \"System, OS & Utilities\"\n  ]\n}\n\nCategory Meaning (short definitions)\n\nSecurity Software: password managers, IAM, endpoint security, scanning, encryption, secret storage, authentication, threat detection.\n\nDeveloper Tools: IDEs, CI/CD, package managers, build tools, SDKs, code quality tools.\n\nCloud Infrastructure & Platforms: cloud providers, IaC, Kubernetes, networks, serverless, compute, managed cloud services.\n\nData & Analytics: databases, ETL, BI, dashboards, data processing, data governance.\n\nAI & Machine Learning: LLM tools, ML platforms, MLOps, vector databases, AI assistants.\n\nProductivity & Collaboration: file sharing, notes, calendar, messaging, project/task management.\n\nBusiness Applications: CRM, ERP, HR systems, finance/accounting, marketing automation, e-commerce.\n\nContent, Media & Design: CMS, design, video/audio editing, creative tools.\n\nNetworking & Connectivity: VPN, proxy, DNS, remote access, routing, network monitoring.\n\nSystem, OS & Utilities: OS-level tools, backup, virtualization, system monitoring, compression, CLI utilities.\n\nKey-Word Rules (choose exactly 3)\n\nEach keyword must:\n\nBe concise (1–3 words)\n\nDescribe what the product does, not marketing fluff\n\nNot repeat the category name\n\nNot repeat the vendor/product name\n\nNot be generic (avoid “software”, “tool”, “application”)\n\nExamples:\n\n“password storage”, “identity protection”, “endpoint monitoring”, “LLM assistant”, “data ingestion”, “CI/CD pipeline”, “cloud orchestration”\n\nYour Output Format\n\nYou must output exactly this schema:\n\n{\n  \"category\": \"string\",\n  \"key_words\": [\"string\"]\n}\n\nClassification Rules\n\nUse the product’s primary function to choose the category.\n\nIf multiple domains apply, pick the domain most emphasized by evidence.\n\nIf functionality is unclear, be conservative.\n\nUse website and sources to validate the summary.\n\nDo not infer complex AI/ML or security capabilities without clear proof.\n\nNever output extra fields.\n\nNo markdown, no explanations — JSON output only.\n\nINPUT FORMAT (Correct Fields)\n\nYou will receive a single JSON object describing one software product.\nIt will contain these fields exactly:\n\n{\n  \"idx\": number,\n  \"id\": number,\n  \"created_at\": \"timestamp string\",\n  \"vendor_name\": \"string\",\n  \"product_name\": \"string\",\n  \"sha1\": \"string\",\n  \"website\": \"string or null\",\n  \"hq_country\": \"string or null\",\n  \"github_repo\": \"string (URL or 'notfound')\",\n  \"summary_one_liner\": \"string\",\n  \"confidence\": \"high | medium | low\",\n  \"uncertainty_reason\": \"string\",\n  \"updated_at\": \"timestamp string\",\n  \"sources\": [\n    {\n      \"link\": \"string\",\n      \"description\": \"string\"\n    }\n  ],\n  \"searched_sha1\": \"string\"\n}\n\nInterpretation rules\n\nYou MUST ignore: idx, id, created_at, updated_at, confidence, uncertainty_reason, searched_sha1.\n\nOnly rely on:\n\nproduct_name\n\nvendor_name\n\nwebsite\n\nhq_country\n\ngithub_repo\n\nsummary_one_liner\n\nsources\n\nsources may include multiple URLs — treat them as evidence.\n\nIf github_repo is \"notfound\" then no repo exists."
+        }
+      },
+      "id": "784c476a-4f56-4111-848d-471c45f978d5",
+      "name": "Classification Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1536,
+        912
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ref": {
+      "main": [
+        [
+          {
+            "node": "Guardrails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Classification Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails": {
+      "main": [
+        [
+          {
+            "node": "Classification Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "fail 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Guardrails",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classification Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classification Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classification Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "56c7f59f-651f-4096-bb2d-da8b6c3ec476",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af936dc80af5cb25f9aebeb032f8ed42f9316b637b7f7380c1ff088f6b7c7de"
+  },
+  "id": "pqJ0bhhpQilyZXFE",
+  "tags": []
+}

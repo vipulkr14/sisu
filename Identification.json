@@ -1,0 +1,317 @@
+{
+  "name": "Identification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "assess-product",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        112
+      ],
+      "id": "db8bc617-97df-4a17-bddf-db5693aa5d55",
+      "name": "Webhook1",
+      "webhookId": "66716a49-6ff7-41e9-b7d4-7583fb177d29"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "product_entities",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sha1",
+              "condition": "eq",
+              "keyValue": "={{ $json.sha1 }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "hq_country",
+              "fieldValue": "={{ $json.hq_country }}"
+            },
+            {
+              "fieldId": "github_repo",
+              "fieldValue": "={{ $json.github_repo }}"
+            },
+            {
+              "fieldId": "summary_one_liner",
+              "fieldValue": "={{ $json.summary_one_liner }}"
+            },
+            {
+              "fieldId": "confidence",
+              "fieldValue": "={{ $json.confidence }}"
+            },
+            {
+              "fieldId": "sources",
+              "fieldValue": "={{ $json.sources }}"
+            },
+            {
+              "fieldId": "website",
+              "fieldValue": "={{ $json.website }}"
+            },
+            {
+              "fieldId": "searched_sha1",
+              "fieldValue": "={{ $json.sha1 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        640,
+        112
+      ],
+      "id": "5e281b95-b39c-40e9-b59a-f1089ad51292",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "9Ks6J7Ydz18HkJ0N",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "product_entities",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "product_name",
+              "fieldValue": "={{ $json.body.product_name }}"
+            },
+            {
+              "fieldId": "vendor_name",
+              "fieldValue": "={{ $json.body.company_name }}"
+            },
+            {
+              "fieldId": "sha1",
+              "fieldValue": "={{ $json.body.sha1 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "6caee066-59ab-45a1-8822-9cc493eaeba2",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "9Ks6J7Ydz18HkJ0N",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the raw product input:\n\n{\n  \"product_name\": \" {{ $json.body.product_name }}\",\n  \"company_name\": \"{{ $json.body.company_name }},\n  \"sha1\": \"{{ $json.body.sha1 }}\"\n}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI security research assistant.\nYour task is to resolve a software product and vendor name from raw input.\n\nThe input format is\n{\n\"product_name\": \"\",\n\"company_name\": \"\",\n\"sha1\": \"\"\n}\n\nAssume the input fields are correct. If the company_name looks like a URL,\ntreat it as a website and infer the vendor.\n\nMake sure you verify all three values of the input. If you are unsure or cannot\nfind information about one of the input values, reduce your confidence.\n\nProvide one or more links to pages you used for the search.\n\nReturn STRICT JSON in the following format:\n\n{\n\"product_name\": \"the same name from user input\",\n\"vendor_name\": \"vendor name\",\n\"website\": \"link to the main page of the tool/project/vendor\",\n\"hq_country\": \"identify based on the vendor; skip if cannot be found\",\n\"github_repo\": \"use only if open-source\",\n\"sha1\": \"the same hash from user input\",\n\"summary_one_liner\": \"summary\",\n\"confidence\": \"high | medium | low\",\n\n\"sources\": {[\"link\": \"url\",\n\"description\": \"links to prove your results\"]},\n}\n\nIMPORTANT! Do NOT use any additional formatting. REPLY WITH RAW JSON.  Use \"not-found\" for ANY missing"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        112,
+        112
+      ],
+      "id": "ad56a56a-eadf-43bb-8141-dc04f5e5919d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        16,
+        320
+      ],
+      "id": "b675d9c3-1219-4397-ae13-f53f025eb03f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vUTMstISiKPwTfNy",
+          "name": "Google Gemini(PaLM) Api account 9"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"product_name\": \"the same name from user input\",\n  \"vendor_name\": \"vendor name\",\n  \"website\": \"link to the main page of the tool/project/vendor\",\n  \"hq_country\": \"identify based on the vendor; skip if cannot be found\",\n  \"github_repo\": \"use only if open-source\",\n  \"sha1\": \"the same hash from user input\",\n  \"summary_one_liner\": \"summary\",\n  \"confidence\": \"high | medium | low\",\n\n\"sources\": [\n  {\n    \"link\": \"url\",\n    \"description\": \"links to prove your results\"\n  }\n]\n  \n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        336,
+        320
+      ],
+      "id": "22e8aa5b-4fb3-4a79-9d44-097df20d8936",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming items\nconst items = $input.all();\n\n// For each item, take its `output` field and make THAT the new json\nconst mapped = items\n  .map(item => item.json.output)\n  .filter(o => o && typeof o === 'object');\n\n// If nothing was found, throw to help debug\nif (mapped.length === 0) {\n  throw new Error(\n    'No `output` field found on incoming items. First item was: ' +\n      JSON.stringify(items[0]?.json || {}, null, 2)\n  );\n}\n\n// Return an array of items in n8n's format\nreturn mapped.map(o => ({ json: o }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        112
+      ],
+      "id": "d0a2e091-0adc-453c-b90e-f90ef0918bef",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {
+          "search_depth": "advanced",
+          "chunks_per_source": 3,
+          "max_results": 10,
+          "time_range": "year"
+        }
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        176,
+        320
+      ],
+      "id": "f08f575b-bf6d-47f0-ba62-bb4a2686489e",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "S6K779yoZZhnPF7k",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"vendor_name\": \"{{ $json.vendor_name }}\",\n  \"product_name\": \"{{ $json.product_name }}\",\n  \"sha1\": \"{{ $json.sha1 }}\",\n  \"website\": \"{{ $json.website }}\",\n  \"hq_country\": \"{{ $json.hq_country }}\",\n  \"github_repo\": \"{{ $json.github_repo }}\",\n  \"summary_one_liner\": \"{{ $json.summary_one_liner }}\",\n  \"confidence\": \"{{ $json.confidence }}\",\n  \"sources\": {{ $json.sources }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        912,
+        112
+      ],
+      "id": "cddd8882-7eea-4729-a169-b8bdfce4d930",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "87b6e545-9163-46e7-abff-41396db2eb8b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af936dc80af5cb25f9aebeb032f8ed42f9316b637b7f7380c1ff088f6b7c7de"
+  },
+  "id": "unzFPphWsT2099h9",
+  "tags": []
+}
