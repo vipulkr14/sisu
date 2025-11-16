@@ -260,6 +260,12 @@ Based on `safe_score ∈ [0, 1]` and `confidence ∈ {"low", "medium", "high"}`,
 3. Set the n8n environment to **production**.
 4. Ensure the workflows are **enabled** and running.
 
+
+You can see an example of one of the n8n workflows in the following:
+
+![n8n workflow sample](img/sample-n8n-flow.png)
+
+
 ---
 
 ### 2. Install Python Dependencies
