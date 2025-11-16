@@ -1,10 +1,19 @@
 import plotly.graph_objects as go
 
-categories=['param1','param2','param3', 'param4']
+categories=['assess_product_trust_score','license_scan_trust_score','virustotal_trust_score', 
+            'certs_scan_trust_score', 'cve_trust_score', 'security_assessment_trust_score']
 
-def create_graph(product, param1: int, param2: int, param3: int, param4:int):
+def create_graph(product, trust_scores):
+    assess_product_trust_score = trust_scores["assess_product_trust_score"]
+    license_scan_trust_score = trust_scores["license_scan_trust_score"]
+    virustotal_trust_score = trust_scores["virustotal_trust_score"]
+    certs_scan_trust_score = trust_scores["certs_scan_trust_score"]
+    cve_trust_score = trust_scores["cve_trust_score"]
+    security_assessment_trust_score = trust_scores["security_assessment_trust_score"] 
+    print(security_assessment_trust_score)
     fig = go.Figure(data=go.Scatterpolar(
-        r=[param1, param2, param3, param4],
+        r=[assess_product_trust_score, license_scan_trust_score, virustotal_trust_score, 
+           certs_scan_trust_score, cve_trust_score, security_assessment_trust_score],
         theta=categories,
         fill='toself'
         ))
