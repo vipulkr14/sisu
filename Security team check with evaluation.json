@@ -1,0 +1,814 @@
+{
+  "name": "Security team check with evaluation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6c08ca4a-e308-4b02-9c0e-2401a333e2c5",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7b791829-db54-4a9f-94a2-0efc2232aa60",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2784,
+        48
+      ],
+      "webhookId": "6c08ca4a-e308-4b02-9c0e-2401a333e2c5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "0b897436-0b76-43b0-bc25-52bc6fdefda4",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2480,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the product info:\n\n{\n  \"product_name\": \"{{ $('Ref').item.json.body.product_name }}\",\n  \"product_website\": \"{{ $('Ref').item.json.body.product_website }}\",\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "[START OF PROMPT]\n\n### Context\n\nYou are an LLM tasked with analyzing a vendor’s public website. Your role is to determine whether specific security-related information exists on the website. Your conclusions must be strictly constrained, deterministic, and aligned with the rules below.\nUse Search in Tavily for finding the website security page.\n\n### Requirements\n\nDETERMINISTIC RULES:\nTo avoid hallucination and ensure consistency:\nDo not generate or invent URLs.\nUse Search in Tavily for finding the website security page.\nOnly cite URLs that were clearly present in the provided website content.\nIf unsure, say \"I'm not sure\".\nNever fabricate certifications, policies, organizational names, advisory listings, or certificate IDs.\nUse only the allowed binary codes:\n1 = directly found on the website\n0 = not found but inference/derivation is possible\n-1 = inconclusive (cannot find nor confidently derive)\nIf unsure at any point, include “I’m not sure” in the reasoning explanation.\nFollow the output format exactly (structure, labels, and order).\nGENERAL RULES\nFor each category, output exactly one line in this format:\n[1, 0, or -1] | description_string | reasoning_explanation\nMeaning of the values:\n1 = Directly found\ndescription_string: brief description of the exact item\n (e.g., “ISO/IEC 27001:2022 certificate ID 2032974”)\nreasoning_explanation must include:\nhow you located it\nthe exact URL\na short quote or summary of the section\n0 = Not found, but derived\ndescription_string: inferred/derived information or explicit “none found”\nreasoning_explanation must:\nexplain where you searched\nexplain why it is not present\ndescribe the reasoning for the inferred conclusion\n-1 = Inconclusive\nUse -1 if:\ninformation cannot be found, and\nyou cannot derive it confidently, and\nthe website content is too ambiguous or insufficient\nreasoning_explanation must:\nexplain where you looked\nstate explicitly: \"I'm not sure; insufficient information.\"\nCATEGORY TO ANALYZE\nProvide one output line for each:\nVendor Security Page (e.g., Security, Trust Center)\nAfter the human-readable lines, output a JSON object matching this schema exactly:\n\n{\n  \"vendor_security_page\": {\n    \"binary\": \"1 | 0 | -1\",\n    \"description\": \"string\",\n    \"reasoning\": \"string\"\n  }\n}\n\nNotes:\nEvery field must be present.\nReasoning must include “I’m not sure” when applicable.\nNo additional fields or variations are allowed.\n\n\n[END OF PROMPT]\n"
+        }
+      },
+      "id": "ac5fe384-5f8f-40f7-83fe-ba09d8bd1f5c",
+      "name": "Security Assessment Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1136,
+        192
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        192
+      ],
+      "id": "4d1a1230-4bed-4e44-b993-e15cb523b6df",
+      "name": "Ref"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "pv4NLLa3EzhnX2DG",
+          "mode": "list",
+          "cachedResultName": "Sisu data",
+          "cachedResultUrl": "/projects/57wKllvzCpkuiqD1/datatables/pv4NLLa3EzhnX2DG"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -2784,
+        320
+      ],
+      "id": "03b055fa-ee7a-4e7d-b2c7-f4794b6fc671",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1296,
+        416
+      ],
+      "id": "f67f1ebf-d268-46a7-86bb-766281e15f92",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d9b4e03f-c692-42e5-9c19-45fe55dfd613",
+              "name": "product_name",
+              "value": "={{ $json.product_name }}",
+              "type": "string"
+            },
+            {
+              "id": "be310272-d315-47f0-9aa8-7787a60fd5f5",
+              "name": "website",
+              "value": "={{ $json.website }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2480,
+        320
+      ],
+      "id": "bf26a15f-fa27-46ba-999e-8f7c91eec8ca",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"vendor_security_page\": {\n    \"binary\": \"1 | 0 | -1\",\n    \"description\": \"string\",\n    \"reasoning\": \"string\"\n  }\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -992,
+        416
+      ],
+      "id": "ba0abadf-54fc-4c65-8b51-15cd4870a2e6",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        560
+      ],
+      "id": "fa1e2e87-a81c-458f-b715-7a48bcb7aee4",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        416
+      ],
+      "id": "25a340c8-9a3b-4395-95e1-e29298221001",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        432
+      ],
+      "id": "7481467f-0804-4ce9-b37a-90d44b7824f7",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "PM0MLmNU7DlUtW4X",
+          "name": "Tavily account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the web and retrieve information from URLs. You can search GitHub or access GitHub repository pages to find license information.",
+        "url": "={{ $fromAI('url', 'The URL to fetch information from', 'string') }}",
+        "options": {}
+      },
+      "id": "28a93933-dcf3-4686-9790-bae4580cf66e",
+      "name": "HTTP Request Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        -496,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ \n  $json.product_name | $json.website\n}}",
+        "guardrails": {
+          "jailbreak": {
+            "value": {
+              "threshold": 0.7
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.guardrails",
+      "typeVersion": 1,
+      "position": [
+        -1904,
+        192
+      ],
+      "id": "3f967547-917b-4cbe-9e9d-148303c5a25e",
+      "name": "Guardrails"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1984,
+        400
+      ],
+      "id": "678d146d-6903-40f0-aeaf-a5588ab9579e",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"result\": \"0 | 1\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        448
+      ],
+      "id": "61c68b00-c258-4b4e-91fb-423d7c2b95cb",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        656
+      ],
+      "id": "10269447-7d78-4baf-babc-864edb8154ac",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d8b3ea6-b70a-4e7f-bd46-9bb43e676400",
+              "leftValue": "={{ $json.output.result }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "7499a112-ccf5-4f85-af82-299030fd436d",
+              "leftValue": "={{ $('Security Assessment Agent').item.json.output.vendor_security_page.binary }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        192
+      ],
+      "id": "4e395ab9-14fd-4eba-b417-608bf0cd2996",
+      "name": "Hallucination condition"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cde0b1c3-f54c-41cf-ad76-20db19074da3",
+      "name": "fail 2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1664,
+        336
+      ],
+      "id": "f9dda6da-546e-40ea-90bc-14a451c68ee0",
+      "name": "fail 1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=URLs are in the following text:\n\n{{ $json.output.vendor_security_page.reasoning }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "[START OF PROMPT]\n\n### Context\n\nYou are an LLM tasked with verifying a list of URLs (links). Your role is to determine whether all provided links are valid and reachable without errors.\n\nYour conclusions must be strictly constrained, deterministic, and aligned with the rules below.\n\n### Requirements\n\n#### DETERMINISTIC RULES\n\nTo avoid hallucination and ensure consistency:\n\n- Find all the URLs in the the user input.\n- Use HTTP Request Tool to verify the website.\n- Do not generate or invent URLs.\n  Only use and check the exact URLs that are explicitly provided to you.\n- Do not modify URLs.\n  Do not change schemes, paths, parameters, or domains in an attempt to \"fix\" them.\n- When checking a URL:\n  - Consider it valid if it can be reached and does not return an HTTP error (no 4xx or 5xx status) or obvious network failure.\n  - HTTP redirects (3xx) that ultimately resolve successfully are acceptable and should be treated as valid.\n- If any URL:\n  - returns an HTTP error (4xx or 5xx), or\n  - cannot be reached, or\n  - you are unable to confidently verify its status,\n  then treat that URL as not verified.\n\nWhen in doubt about any link’s status, you must treat the overall result as not verified.\n\n#### GENERAL RULES\n\n- You must check every URL provided.\n- You must not assume that a URL works based solely on its appearance or structure.\n- If tooling or checks fail for any single URL, the overall result must be considered a failure (result \"0\").\n\n### OUTPUT FORMAT\n\nYour entire response must consist of only the following JSON object, with no extra text before or after it:\n\n{\n  \"result\": \"1\"\n}\n\nor\n\n{\n  \"result\": \"0\"\n}\n\nWhere:\n\n- \"1\" — if all provided links are successfully verified as existing and reachable without errors.\n- \"0\" — if at least one link:\n  - does not exist, or\n  - returns an error (4xx/5xx), or\n  - cannot be confidently verified for any reason.\n\nNo additional text, fields, comments, or formatting are allowed in the output.\nOnly output exactly the JSON object in this schema.\n\n[END OF PROMPT]\n"
+        }
+      },
+      "id": "c1e55063-22fe-4728-b0e7-2be3bc89c81f",
+      "name": "hallucination Assessment Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -624,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"product\": \"{{ $item(0).$node[\"Ref\"].json.body.product_name }}\",\n  \"security\": {{ JSON.stringify($item(0).$node['Security Assessment Agent'].json.output.vendor_security_page) }}\n} ",
+        "options": {}
+      },
+      "id": "e6599dff-cbb8-4864-b1a3-2708127a2605",
+      "name": "success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        432,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "0aRBEpDb0LqVcYmX",
+          "mode": "list",
+          "cachedResultName": "test-security",
+          "cachedResultUrl": "/projects/57wKllvzCpkuiqD1/datatables/0aRBEpDb0LqVcYmX"
+        }
+      },
+      "type": "n8n-nodes-base.evaluationTrigger",
+      "typeVersion": 4.7,
+      "position": [
+        -2800,
+        512
+      ],
+      "id": "ecbb5531-24c6-4d2e-b100-60d1d9e0375d",
+      "name": "When fetching a dataset row"
+    },
+    {
+      "parameters": {
+        "operation": "checkIfEvaluating"
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        -832,
+        16
+      ],
+      "id": "f1d85dc9-b37c-4a96-b93c-53435ecb5b2f",
+      "name": "Evaluation1"
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "expectedAnswer": "=result = {{ $('When fetching a dataset row').item.json.binary }}, reasoning = {{ $('When fetching a dataset row').item.json.reasoning }}",
+        "actualAnswer": "=result = {{ $('Security Assessment Agent').item.json.output.vendor_security_page.binary }}, reasoning = {{ $('Security Assessment Agent').item.json.output.vendor_security_page.reasoning }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        -560,
+        -176
+      ],
+      "id": "fc09f7f8-9e2d-4b96-8e49-eb7228e9d593",
+      "name": "Evaluation"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        0
+      ],
+      "id": "91507a18-2906-493e-a94b-77e5b02e5116",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QDbHRD2yZrP8u7i7",
+          "name": "Google Gemini(PaLM) Api account 8"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"body\": {\n    \"product_name\": \"{{ $json.product_name }}\",\n    \"product_website\": \"{{ $json.product_website }}\"\n  }\n}\n ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2480,
+        512
+      ],
+      "id": "09f500f6-10c6-4b69-920c-594adb27c9e7",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "0aRBEpDb0LqVcYmX",
+          "mode": "list",
+          "cachedResultName": "test-security",
+          "cachedResultUrl": "/projects/57wKllvzCpkuiqD1/datatables/0aRBEpDb0LqVcYmX"
+        },
+        "outputs": {
+          "values": [
+            {
+              "outputName": "Correctness",
+              "outputValue": "={{ $json.Correctness }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        -160,
+        -176
+      ],
+      "id": "21fc2177-e6d2-40c9-b7a1-49019aefce30",
+      "name": "Evaluation2"
+    }
+  ],
+  "pinData": {
+    "Webhook Trigger": [
+      {
+        "json": {
+          "body": {
+            "product_name": "HandBrake",
+            "product_website": "https://handbrake.fr/"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security Assessment Agent": {
+      "main": [
+        [
+          {
+            "node": "Evaluation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ref": {
+      "main": [
+        [
+          {
+            "node": "Guardrails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "hallucination Assessment Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "hallucination Assessment Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails": {
+      "main": [
+        [
+          {
+            "node": "Security Assessment Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "fail 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Guardrails",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "hallucination Assessment Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hallucination condition": {
+      "main": [
+        [
+          {
+            "node": "fail 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "hallucination Assessment Agent": {
+      "main": [
+        [
+          {
+            "node": "Hallucination condition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When fetching a dataset row": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "success": {
+      "main": [
+        []
+      ]
+    },
+    "Evaluation1": {
+      "main": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "hallucination Assessment Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluation": {
+      "main": [
+        [
+          {
+            "node": "Evaluation2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b7bd72a0-9642-43b3-bf73-627a7bf0f5c7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7af936dc80af5cb25f9aebeb032f8ed42f9316b637b7f7380c1ff088f6b7c7de"
+  },
+  "id": "qPFmNl2sBAtrJNhC",
+  "tags": []
+}
