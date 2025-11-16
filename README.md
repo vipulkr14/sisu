@@ -21,6 +21,12 @@ The goal is to move security teams from reactive firefighting to proactive enabl
 
 At a high level, the pipeline looks like this:
 
+![High level Architecture](img/plantBaseArchdiagram-arch.png)
+
+You can also see more details about the Security Assesment in the following picture:
+
+![Security assesment agents details](img/plantBasediagram-agent.png)
+
 1. **Check Cache**
 
    * Given the input (sha1/url/vendor/product), check whether a recent assessment exists.
@@ -60,7 +66,7 @@ At a high level, the pipeline looks like this:
 
 8. **Decision Engine**
 
-   * Apply deterministic rules (see [Decision Logic](#decision-logic)) to get the final decision sentence.
+   * Apply deterministic rules to get the final decision sentence.
 
 9. **Report Generator**
 
